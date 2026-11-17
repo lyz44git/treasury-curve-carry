@@ -102,8 +102,8 @@ Profit or loss per 100 of notional in the 5-year leg (first order):
 
 Under the reading rule: no detectable predictability.
 
-1. **The forecast loses to the mean throughout.** The cumulative gain in Figure 1c is below zero from 1993 on and
-   steps down in 2008–2009 and 2013. Restricting the slope to be positive changes nothing, because the estimated
+1. **The forecast loses to the mean throughout.** The cumulative gain in Figure 1c is below zero in every month from
+   1993 on except one (the position opened at the end of September 2008), and steps down in 2008–2009 and 2013. Restricting the slope to be positive changes nothing, because the estimated
    slope is never negative.
 2. **The placebo is no worse.** The plan expected the carry of 12 months earlier to do worse than current carry;
    it does not (−1.4% against −2.6%). With an autocorrelation of 0.88, the two carry nearly the same information.

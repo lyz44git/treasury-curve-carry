@@ -66,4 +66,5 @@ def test_part_b_numbers():
     monthly = pd.read_csv(REP / "part_b_monthly.csv").iloc[120:]
     gain = ((monthly.butterfly_rx - monthly.benchmark) ** 2 - (monthly.butterfly_rx - monthly.forecast) ** 2).cumsum()
     years = pd.PeriodIndex(monthly.month, freq="M").year
-    assert (gain[years >= 1993] < 0).all()
+    above = monthly.month[(gain >= 0).to_numpy() & (years >= 1993)]
+    assert list(above) == ["2008-09"]
