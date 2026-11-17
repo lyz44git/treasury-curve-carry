@@ -9,6 +9,7 @@ Outputs (reports/):
                              placebo, level-on-slope reference)
   part_b_insample.csv        in-sample regressions with Newey-West errors
   part_b_strategies.csv      timing rule (before and after the cost scenario) and the carry sort
+  part_b_signal.csv          size and persistence of the predictor against the return (descriptive)
   part_b_monthly.csv         monthly series behind the above
 """
 from pathlib import Path
@@ -146,6 +147,12 @@ def part_b(y_full, rx, carry):
     strat[1]["annual_duration_traded"] = traded.mean() * 12
     strat.append({"strategy": "share of months long", "sharpe": float((side > 0).mean())})
     pd.DataFrame(strat).to_csv(OUT / "part_b_strategies.csv", index=False)
+
+    pd.DataFrame([{"months": len(y), "carry_sd": x.std(ddof=1), "return_sd": y.std(ddof=1),
+                   "r2_ceiling_if_carry_were_the_expected_return": x.var(ddof=1) / y.var(ddof=1),
+                   "carry_autocorrelation": float(np.corrcoef(x[1:], x[:-1])[0, 1]),
+                   "mean_carry_annual": x.mean() * 12, "mean_return_annual": y.mean() * 12}]
+                 ).to_csv(OUT / "part_b_signal.csv", index=False)
 
     monthly = pd.DataFrame({"month": [str(m) for m in weights.index], "butterfly_rx": y, "carry": x,
                             "forecast": model, "benchmark": bench,
