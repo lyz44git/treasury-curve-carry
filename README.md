@@ -7,8 +7,11 @@ yield changes, and a 2-5-10 butterfly built to ignore the first two is left hold
 roll-down is what the position earns if the curve does not move. Used as a forecast of next month's return, over
 421 out-of-sample months, it does worse than the position's own historical mean: out-of-sample R² −2.6% (95% CI
 −5.6% to +0.6%). The plan, the positions and the test were written down before the yield data were downloaded.
+From November 2026 a scheduled job applies the same rule to each new month as the Federal Reserve publishes it,
+and records the forecast before the month it forecasts has ended ([forward record](forward/summary.md)).
 
 [![tests](https://github.com/lyz44git/treasury-curve-carry/actions/workflows/tests.yml/badge.svg)](https://github.com/lyz44git/treasury-curve-carry/actions/workflows/tests.yml)
+[![forward record](https://github.com/lyz44git/treasury-curve-carry/actions/workflows/forward.yml/badge.svg)](https://github.com/lyz44git/treasury-curve-carry/actions/workflows/forward.yml)
 
 <img src="figures/figure1.png" alt="Four panels: loadings of the level, slope and curvature factors by maturity; profit or loss of a 5-year bullet, a 2-10 barbell and a 2-5-10 butterfly under a one-standard-deviation move of each factor; cumulative out-of-sample gain of the carry forecast over the historical mean, which falls below zero; and out-of-sample R-squared with 95% intervals for the full period, two sub-periods, a placebo and a reference regression." width="100%">
 
@@ -38,6 +41,7 @@ roll-down is what the position earns if the curve does not move. Used as a forec
 |---|---|---|---|
 | Zero-coupon yields and Svensson parameters, daily | Federal Reserve, [Gürkaynak, Sack and Wright nominal yield curve](https://www.federalreserve.gov/data/nominal-yield-curve.htm) | 1961-06-14 to 2026-11-06; the 10-year yield from 1971-08-16 | Federal Reserve staff research product, public |
 | One-month Treasury bill return, monthly | [Kenneth French data library](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html), research factors file | 1926-07 to 2026-09 | Free for research use; not redistributed here |
+| 1-month Treasury constant-maturity yield, daily (Part C only) | Federal Reserve, [H.15 Selected Interest Rates](https://www.federalreserve.gov/releases/h15/), series `RIFLGFCM01_N.B` | 2001-07-31 on | Public |
 
 Month-end curves from August 1971 to August 2026 give 661 monthly positions. Raw files are not stored in this
 repository; `scripts/01_download.py` fetches them.
@@ -127,6 +131,31 @@ that back. The interval of the primary estimate is about three percentage points
 this size cannot be told from zero on 421 months of one curve; a panel of curves across countries would be the
 way to gain power, and is outside this plan.
 
+## Forward record (Part C)
+
+Part B scores months that existed when the rule was chosen. Part C applies the same rule, unchanged, to each
+new month: every Tuesday a GitHub Actions job ([`forward.yml`](.github/workflows/forward.yml)) downloads the
+curve and the 1-month bill yield as published that day, checks them, and appends the forecast for any new
+month-end to [`forward/forecasts.csv`](forward/forecasts.csv); the realized return is added a month later.
+The plan is [`design/forward_plan.md`](design/forward_plan.md) (SHA-256 `c22aaa6a…`), written before the first
+forward position, the one opened at the end of November 2026. The current state is in
+[`forward/summary.md`](forward/summary.md).
+
+- **Frozen rule.** The forecast is the Part B regression over all earlier months; the published Part B series is
+  used as it stands and new months are appended. A written forecast is never changed, and a forecast written
+  after the month it forecasts has ended is counted as late.
+- **Bill return.** The Kenneth French file is published a month or more late, so Part C uses the H.15 1-month
+  yield at the previous month-end. Over 302 months the two bill returns differ by 0.84 bp a month on average;
+  because the butterfly's weights sum to −0.04, this moves its carry by 0.04 bp on average (at most 0.34 bp)
+  against a standard deviation of 0.69 bp (`reports/forward_step0.json`).
+- **Checks.** The run fails and writes nothing if a download fails, a file is stale or incomplete, a yield is out
+  of range, or the Svensson formula misses the published yields by more than 0.001 percentage points. Each row
+  also records how far the published butterfly weights move when recomputed from that day's file, which shows
+  any revision of past curves.
+- **Reading.** No interval before 24 scored months and no conclusion before 60. With an interval about three
+  percentage points wide on each side after 421 months, the record cannot overturn Part B; it shows that the
+  rule runs as written on data that did not exist when it was fixed.
+
 ## Verification
 
 - `tests/test_core.py`: nine tests. With an unchanged curve the return equals the carry; the carry at a month-end
@@ -135,6 +164,12 @@ way to gain power, and is outside this plan.
   an R² of zero against itself. One test needs the downloaded yield file and checks that the formula reproduces
   the published yields.
 - `tests/test_results.py`: the numbers quoted in this README against the files in `reports/`.
+- `tests/test_forward.py`: sixteen tests of Part C. The forecast equals the Part B expanding forecast and does not
+  change when the month it forecasts or any later month changes; the record starts at the first forward position,
+  never rewrites a forecast or a realized return, and survives a round trip through CSV; late forecasts are
+  counted; each failure check is triggered by a damaged file. With the downloads present, the Part C pipeline
+  reproduces the published butterfly weights exactly and the published carry and return to within the 0.34 bp
+  the bill return explains.
 
 ## Scope and limits
 
@@ -153,6 +188,8 @@ python3 scripts/01_download.py        # two public files into data/raw (git-igno
 python3 scripts/02_step0_checks.py    # conventions and coverage -> reports/step0.json
 python3 scripts/03_run.py             # Parts A and B -> reports/
 python3 figures/make_figure1.py
+python3 scripts/04_forward_step0.py  # Part C step 0 -> reports/forward_step0.json
+python3 scripts/05_forward.py        # Part C: today's files -> forward/ (the weekly job runs this)
 pytest tests -q
 ```
 

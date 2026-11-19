@@ -1,0 +1,39 @@
+{
+  "files": {
+    "curve_last_date": "2026-11-13",
+    "bill_last_date": "2026-11-17",
+    "formula_gap_pp": 4.999540080685705e-05
+  },
+  "bill_return": {
+    "months": 302,
+    "first": "2001-08",
+    "last": "2026-09",
+    "mean_diff_bp": 0.2846956363966253,
+    "mean_abs_diff_bp": 0.8407874444343646,
+    "max_abs_diff_bp": 8.063013698630137,
+    "correlation": 0.9961490955184183
+  },
+  "butterfly_weight_sum": {
+    "mean": -0.04337394747791722,
+    "min": -0.053380408668046775,
+    "max": -0.024682860614439445
+  },
+  "effect_on_carry_bp": {
+    "mean_abs": 0.04015959085577535,
+    "max_abs": 0.3399413683884411,
+    "carry_sd": 0.6930948985587759
+  },
+  "effect_on_return_bp": {
+    "mean_abs": 0.040204116611595585,
+    "max_abs": 0.33978816815495244,
+    "return_sd": 6.1697399346824575
+  },
+  "pipeline_against_published": {
+    "positions_compared": 301,
+    "first": "2001-08",
+    "last": "2026-08",
+    "max_abs_diff_carry_bp": 0.33994136838844047,
+    "max_abs_diff_return_bp": 0.33978816815495494,
+    "max_abs_diff_weights_all_published_months": 0.0
+  }
+}
